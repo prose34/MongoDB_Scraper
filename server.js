@@ -70,6 +70,46 @@ app.set("view engine", "handlebars");
 
 // Routes
 
+
+// Handlebars get request - render into homepage
+app.get("/", function(request, response) {
+  //load up to 10 articles and render with handlebars
+  Article.find({"saved": false}).limit(10).exec(function(error, data) {
+    var handlebarsObject = {
+      article: data
+    };
+    // console.log(handlebarsObject);
+    response.render("homepage", handlebarsObject);
+  });
+});
+
+
+// Get route to show saved articles
+app.get("/saved", function(request, response) {
+  Article.find({"saved": true}).populate("comments").exec(function(error, articles) {
+    var handlebarsObject = {
+      article: articles
+    };
+    response.render("saved", handlebarsObject);
+  });
+});
+
+
+// Get route to scrape New York Times website (news)
+app.get("/scrape", function(request, res) {
+  // grab NY Times html using request
+  request("https://nytimes.com/", function(error, response, html) {
+    // use Cheerio to save/load the html
+    var $ = cheerio.load(html);
+
+    // STOPPED HERE!!!
+  }
+})
+
+
+
+
+
 // A GET route for scraping the echoJS website
 app.get("/scrape", function(req, res) {
   // First, we grab the body of the html with request
