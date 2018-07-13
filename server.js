@@ -55,9 +55,16 @@ db.once("open", function() {
 });
 
 
+// Handlebars - may or may not use
+var exphbs = require("express-handlebars");
+app.engine("handlebars", exphbs({
+  defaultLayout: "main",
+  partialsDir: path.join(__dirname, "/views/layouts/partials")
+}));
+
+app.set("view engine", "handlebars");
 
 
-// app.get
 
 
 
