@@ -30,7 +30,7 @@ $(".delete").on("click", function() {
         method: "DELETE",
         url: "/articles/delete/" + thisId
     }).done(function(data) {
-        window.location = "/"
+        window.location = "/saved"
     })
 });
 

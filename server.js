@@ -5,6 +5,8 @@ var express = require("express");
 var bodyParser = require("body-parser");
 var logger = require("morgan");
 var mongoose = require("mongoose");
+var path = require("path");
+
 
 // Our scraping tools
 // Axios is a promised-based http library, similar to jQuery's Ajax method
@@ -90,13 +92,13 @@ app.get("/saved", function(request, response) {
     var handlebarsObject = {
       article: articles
     };
-    response.render("saved", handlebarsObject);
+    response.render("savedarticles", handlebarsObject);
   });
 });
 
 
 // Get route to scrape New York Times website (news)
-app.get("/scrape", function(request, res) {
+app.get("/scrape", function(req, res) {
   // grab NY Times html using request
   request("https://nytimes.com/", function(error, response, html) {
     // use Cheerio to save/load the html
@@ -129,11 +131,11 @@ app.get("/scrape", function(request, res) {
         }
         // log the doc
         else {
-          console.log(doc);
+          // console.log(doc);
         }
       });
     });
-    response.send("Scraped!");
+    res.send("Scraped!");
   });
 });
 
@@ -188,9 +190,9 @@ app.post("/articles/save/:id", function(request, response) {
 
 // Delete article
 
-app.post("/articles/delete/:id", function(request, response) {
+app.delete("/articles/delete/:id", function(request, response) {
   // remove saved article and comments
-  Article.findOneAndUpdate({"_id": req.params.id}, {"saved": false, "comments": []})
+  Article.findOneAndUpdate({"_id": request.params.id}, {"saved": false, "comments": []})
   .exec(function(error, doc) {
     if(error) {
       console.log(error);
@@ -217,7 +219,7 @@ app.post("/comments/save/:id", function(request, response) {
       console.log(error);
     }
     else {
-      Article.findOneAndUpdate({"_id": req.params.id}, {$push: {"comments": comment}})
+      Article.findOneAndUpdate({"_id": request.params.id}, {$push: {"comments": comment}})
 
       .exec(function(err) {
         if(err) {
@@ -238,17 +240,17 @@ app.delete("/notes/delete/:comment_id/:article_id", function(request, response) 
   Comment.findOneAndRemove({ "_id": request.params.comment_id}, function(err) {
     if(err) {
       console.log(err)
-      res.send(err);
+      response.send(err);
     }
     else {
       Article.findOneAndUpdate({"_id": request.params.article_id}, {$pull: {"comments": request.params.comment_id}})
     
       if(err) {
         console.log(err)
-        res.send(err);
+        response.send(err);
       }
       else {
-        res.send("Comment Deleted")
+        response.send("Comment Deleted")
       }
     }
   });
