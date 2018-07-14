@@ -147,15 +147,112 @@ app.get("/articles", function(request, response) {
       console.log(error);
     }
     else {
-      res.json(doc);
+      response.json(doc);
     }
   });
 });
 
 
-// 
+// Get article by it's ID
+app.get("/articles/:id", function(request, response) {
+  // find article with matching id
+  Article.findOne({"_id": request.params.id})
+    // populate associated comments
+    .populate("comment")
+
+    .exec(function(error, doc) {
+      if(error) {
+        console.log(error);
+      }
+      else {
+        response.json(doc);
+      }
+    });
+});
 
 
+// Save an article
+app.post("/articles/save/:id", function(request, response) {
+  // find and article and save it
+  Article.findOneAndUpdate({"_id": request.params.id}, {"saved": true})
+  .exec(function(error, doc) {
+    if(error) {
+      console.log(error);
+    }
+    else {
+      response.send(doc);
+    }
+  });
+});
+
+
+// Delete article
+
+app.post("/articles/delete/:id", function(request, response) {
+  // remove saved article and comments
+  Article.findOneAndUpdate({"_id": req.params.id}, {"saved": false, "comments": []})
+  .exec(function(error, doc) {
+    if(error) {
+      console.log(error);
+    }
+    else {
+      response.send(doc);
+    }
+  });
+});
+
+
+// Create comment
+
+app.post("/comments/save/:id", function(request, response) {
+  // create comment and pass to DB assoicated with article
+  var newComment = new Comment({
+    body: request.body.text,
+    article: request.params.id
+  });
+  console.log(request.body)
+
+  newComment.save(function(error, comment) {
+    if(error) {
+      console.log(error);
+    }
+    else {
+      Article.findOneAndUpdate({"_id": req.params.id}, {$push: {"comments": comment}})
+
+      .exec(function(err) {
+        if(err) {
+          console.log(err);
+        }
+        else {
+          response.send(comment);
+        }
+      });
+    };
+  });
+
+});
+
+
+// Delete note
+app.delete("/notes/delete/:comment_id/:article_id", function(request, response) { 
+  Comment.findOneAndRemove({ "_id": request.params.comment_id}, function(err) {
+    if(err) {
+      console.log(err)
+      res.send(err);
+    }
+    else {
+      Article.findOneAndUpdate({"_id": request.params.article_id}, {$pull: {"comments": request.params.comment_id}})
+    
+      if(err) {
+        console.log(err)
+        res.send(err);
+      }
+      else {
+        res.send("Comment Deleted")
+      }
+    }
+  });
+});
 
 
 // Start the server
